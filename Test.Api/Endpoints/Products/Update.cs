@@ -1,8 +1,10 @@
 ﻿using Ardalis.ApiEndpoints;
 using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 using Test.Core.Interfaces;
 
 namespace Test.Api.Endpoints.Products
@@ -10,11 +12,14 @@ namespace Test.Api.Endpoints.Products
     public class Update : EndpointBaseAsync.WithRequest<UpdateProductRequest>.WithActionResult<UpdateProductResponse>
     {
         private readonly IProductService _productService;
+        private readonly IValidator<UpdateProductRequestBody> _validator;
         private readonly IMapper _mapper;
 
-        public Update(IProductService productService, IMapper mapper)
+        public Update(IProductService productService, IValidator<UpdateProductRequestBody> validator,
+            IMapper mapper)
         {
             _productService = productService;
+            _validator = validator;
             _mapper = mapper;
         }
 
@@ -28,6 +33,11 @@ namespace Test.Api.Endpoints.Products
         [Authorize]
         public override async Task<ActionResult<UpdateProductResponse>> HandleAsync([FromRoute] UpdateProductRequest request, CancellationToken cancellationToken = default)
         {
+            var validationResult = await _validator.ValidateAsync(request.Body);
+
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
             var productResult = await _productService.GetByIdAsync(request.Id, request.SlugTenant);
 
             if (!productResult.IsSuccess)
@@ -36,9 +46,10 @@ namespace Test.Api.Endpoints.Products
             if (productResult.Value == null)
                 return NotFound();
 
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             var product = _mapper.Map(request.Body, productResult.Value);
 
-            var result = await _productService.UpdateAsync(product, request.SlugTenant);
+            var result = await _productService.UpdateAsync(Convert.ToInt32(userId), product, request.SlugTenant);
 
             if (!result.IsSuccess)
                 return Problem(string.Join(",", result.Errors), null, StatusCodes.Status500InternalServerError);

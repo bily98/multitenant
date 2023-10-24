@@ -64,7 +64,7 @@ namespace Test.Core.Services
         }
 
 
-        public async Task<Result<Product>> AddAsync(Product product, string slugTenant)
+        public async Task<Result<Product>> AddAsync(int userId, Product product, string slugTenant)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Test.Core.Services
                     return Result<Product>.NotFound("Tenant not found");
 
                 product.TenantId = tenant.Id;
-                product.CreatedBy = 1;
+                product.CreatedBy = userId;
                 product.CreatedAt = DateTime.UtcNow;
 
                 product = await _productRepository.AddAsync(product);
@@ -88,7 +88,7 @@ namespace Test.Core.Services
             }
         }
 
-        public async Task<Result<Product>> UpdateAsync(Product product, string slugTenant)
+        public async Task<Result<Product>> UpdateAsync(int userId, Product product, string slugTenant)
         {
             try
             {
@@ -98,8 +98,8 @@ namespace Test.Core.Services
                 if (tenant == null)
                     return Result<Product>.NotFound("Tenant not found");
 
-                tenant.UpdatedBy = 1;
-                tenant.UpdatedAt = DateTime.UtcNow;
+                product.UpdatedBy = userId;
+                product.UpdatedAt = DateTime.UtcNow;
 
                 await _productRepository.UpdateAsync(product);
 

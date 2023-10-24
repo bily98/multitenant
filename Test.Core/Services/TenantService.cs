@@ -1,6 +1,6 @@
 ﻿using Ardalis.Result;
 using AutoMapper;
-using Microsoft.VisualBasic;
+using Microsoft.Extensions.Configuration;
 using Test.Core.Entities;
 using Test.Core.Interfaces;
 using Test.Core.Specifications.Tenants;
@@ -11,12 +11,12 @@ namespace Test.Core.Services
     public class TenantService : ITenantService
     {
         private readonly ISecurityAsyncRepository<Tenant> _tenantRepository;
-        private readonly IMapper _mapper;
+        private readonly IConfiguration _configuration;
 
-        public TenantService(ISecurityAsyncRepository<Tenant> tenantRepository, IMapper mapper)
+        public TenantService(ISecurityAsyncRepository<Tenant> tenantRepository, IConfiguration configuration)
         {
             _tenantRepository = tenantRepository;
-            _mapper = mapper;
+            _configuration = configuration;
         }
 
         public async Task<Result<IEnumerable<Tenant>>> GetAllAsync()
@@ -69,12 +69,13 @@ namespace Test.Core.Services
         }
 
 
-        public async Task<Result<Tenant>> AddAsync(Tenant tenant)
+        public async Task<Result<Tenant>> AddAsync(int userId, Tenant tenant)
         {
             try
             {
-                tenant.CreatedBy = 1;
+                tenant.CreatedBy = userId;
                 tenant.CreatedAt = DateTime.UtcNow;
+                tenant.ConnectionString = _configuration.GetConnectionString("AppConnection")!.Replace("[database-name]", tenant.Slug);
 
                 tenant = await _tenantRepository.AddAsync(tenant);
 
@@ -86,11 +87,11 @@ namespace Test.Core.Services
             }
         }
 
-        public async Task<Result<Tenant>> UpdateAsync(Tenant tenant)
+        public async Task<Result<Tenant>> UpdateAsync(int userId, Tenant tenant)
         {
             try
             {
-                tenant.UpdatedBy = 1;
+                tenant.UpdatedBy = userId;
                 tenant.UpdatedAt = DateTime.UtcNow;
 
                 await _tenantRepository.UpdateAsync(tenant);

@@ -6,6 +6,7 @@ namespace Test.Core.Entities
     {
         public string Name { get; set; }
         public string Slug { get; set; }
+        public string ConnectionString { get; set; }
 
         public virtual ICollection<User> Users { get; set; }
     }

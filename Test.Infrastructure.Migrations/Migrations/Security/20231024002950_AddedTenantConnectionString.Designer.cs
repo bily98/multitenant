@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Test.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using Test.Infrastructure.Data;
 namespace Test.Infrastructure.Migrations.Migrations.Security
 {
     [DbContext(typeof(SecurityDbContext))]
-    partial class SecurityDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231024002950_AddedTenantConnectionString")]
+    partial class AddedTenantConnectionString
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -101,7 +104,7 @@ namespace Test.Infrastructure.Migrations.Migrations.Security
                         .HasColumnType("nvarchar(max)")
                         .HasColumnName("password");
 
-                    b.Property<int?>("TenantId")
+                    b.Property<int>("TenantId")
                         .HasColumnType("int")
                         .HasColumnName("tenant_id");
 
@@ -120,17 +123,6 @@ namespace Test.Infrastructure.Migrations.Migrations.Security
                         .HasDatabaseName("ix_user_tenant_id");
 
                     b.ToTable("user", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CreatedAt = new DateTime(2023, 10, 24, 2, 46, 45, 479, DateTimeKind.Utc).AddTicks(6298),
-                            CreatedBy = 0,
-                            Email = "admin@admin.com",
-                            Name = "Admin",
-                            Password = "AXsylzBoK0cEbxWE3TWzMA==.09d+cQlb2zsQEWgsiJgeNTDhZRJkA79Qeq20llsJIgg="
-                        });
                 });
 
             modelBuilder.Entity("Test.Core.Entities.User", b =>
@@ -138,6 +130,8 @@ namespace Test.Infrastructure.Migrations.Migrations.Security
                     b.HasOne("Test.Core.Entities.Tenant", "Tenant")
                         .WithMany("Users")
                         .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
                         .HasConstraintName("fk_user_tenant_tenant_id");
 
                     b.Navigation("Tenant");

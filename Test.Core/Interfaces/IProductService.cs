@@ -23,18 +23,20 @@ namespace Test.Core.Interfaces
         /// <summary>
         /// Add a new product
         /// </summary>
+        /// <param name="userId">The id of user logged</param>
         /// <param name="product">Product object</param>
         /// <param name="slugTenant">The slug tenant</param>
         /// <returns>Returns the created product</returns>
-        Task<Result<Product>> AddAsync(Product product, string slugTenant);
+        Task<Result<Product>> AddAsync(int userId, Product product, string slugTenant);
 
         /// <summary>
         /// Update an existing product
         /// </summary>
+        /// <param name="userId">The id of user logged</param>
         /// <param name="product">Product object with updated values</param>
         /// <param name="slugTenant">The slug tenant</param>
         /// <returns>Returns the updated product</returns>
-        Task<Result<Product>> UpdateAsync(Product product, string slugTenant);
+        Task<Result<Product>> UpdateAsync(int userId, Product product, string slugTenant);
 
         /// <summary>
         /// Delete an existing product

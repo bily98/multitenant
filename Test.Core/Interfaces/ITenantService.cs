@@ -28,16 +28,18 @@ namespace Test.Core.Interfaces
         /// <summary>
         /// Add a new tenant
         /// </summary>
+        /// <param name="userId">The id of user logged</param>
         /// <param name="tenant">Tenant object</param>
         /// <returns>Returns the created tenant</returns>
-        Task<Result<Tenant>> AddAsync(Tenant tenant);
+        Task<Result<Tenant>> AddAsync(int userId, Tenant tenant);
 
         /// <summary>
         /// Update an existing tenant
         /// </summary>
+        /// <param name="userId">The id of user logged</param>
         /// <param name="tenant">Tenant object with updated values</param>
         /// <returns>Returns the updated tenant</returns>
-        Task<Result<Tenant>> UpdateAsync(Tenant tenant);
+        Task<Result<Tenant>> UpdateAsync(int userId, Tenant tenant);
 
         /// <summary>
         /// Delete an existing tenant

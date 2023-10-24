@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Test.Api.Endpoints.Users
 {
@@ -13,5 +14,14 @@ namespace Test.Api.Endpoints.Users
     {
         public string Name { get; set; }
         public string Email { get; set; }
+    }
+
+    public class UpdateUserRequestBodyValidation : AbstractValidator<UpdateUserRequestBody>
+    {
+        public UpdateUserRequestBodyValidation()
+        {
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Name should not be empty");
+            RuleFor(x => x.Email).NotEmpty().EmailAddress().WithMessage("Email must be valid");
+        }
     }
 }

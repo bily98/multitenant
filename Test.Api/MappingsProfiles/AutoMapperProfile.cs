@@ -15,7 +15,9 @@ namespace Test.Api.MappingsProfiles
 
             CreateMap<Tenant, GetByIdTenantResponse>();
 
-            CreateMap<PostTenantRequest, Tenant>();
+            CreateMap<PostTenantRequest, Tenant>().
+                ForMember(dest => dest.Slug, opt => opt.MapFrom(src => src.Name.ToLower().Replace(" ", "_")));
+
             CreateMap<Tenant, PostTenantResponse>();
 
             CreateMap<UpdateTenantRequestBody, Tenant>();

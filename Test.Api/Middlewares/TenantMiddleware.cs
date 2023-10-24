@@ -1,6 +1,7 @@
 ﻿using Ardalis.Result;
 using Test.Api.Endpoints;
 using Test.Core.Interfaces;
+using Test.Infrastructure.Interface;
 
 namespace Test.Api.Middlewares
 {
@@ -44,6 +45,9 @@ namespace Test.Api.Middlewares
                             await context.Response.WriteAsync("Tenant not found");
                             return;
                         }
+
+                        var tenantProvider = scope.ServiceProvider.GetRequiredService<ITenantProvider>();
+                        tenantProvider.SetTenant(tenant.Value);
                     }
                     catch (Exception e)
                     {

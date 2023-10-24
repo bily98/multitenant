@@ -1,8 +1,9 @@
 ﻿using Ardalis.ApiEndpoints;
 using AutoMapper;
-using Microsoft.AspNetCore.Authorization;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 using Test.Core.Entities;
 using Test.Core.Interfaces;
 
@@ -12,13 +13,15 @@ namespace Test.Api.Endpoints.Users
     {
         private readonly IUserService _userService;
         private readonly IPasswordService _passwordService;
+        private readonly IValidator<PostUserRequestBody> _validator;
         private readonly IMapper _mapper;
 
         public Post(IUserService userService, IPasswordService passwordService,
-            IMapper mapper)
+            IValidator<PostUserRequestBody> validator, IMapper mapper)
         {
             _userService = userService;
             _passwordService = passwordService;
+            _validator = validator;
             _mapper = mapper;
         }
 
@@ -29,13 +32,20 @@ namespace Test.Api.Endpoints.Users
                 OperationId = "Users.Create",
                 Tags = new[] { "UserEndpoints" }),
         ]
-        [Authorize]
+        //[Authorize]
         public override async Task<ActionResult<PostUserResponse>> HandleAsync([FromRoute] PostUserRequest request, CancellationToken cancellationToken = default)
         {
+            var validationResult = await _validator.ValidateAsync(request.Body);
+
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
+
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             var user = _mapper.Map<User>(request.Body);
             user.Password = _passwordService.Hash(user.Password);
 
-            var result = await _userService.AddAsync(user, request.SlugTenant);
+            var result = await _userService.AddAsync(Convert.ToInt32(userId), user, request.SlugTenant);
 
             if (!result.IsSuccess)
             {

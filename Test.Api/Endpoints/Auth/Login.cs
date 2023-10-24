@@ -1,11 +1,13 @@
 ﻿using Ardalis.ApiEndpoints;
 using Ardalis.Result;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Annotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Test.Api.Endpoints.Products;
 using Test.Core.Entities;
 using Test.Core.Interfaces;
 
@@ -15,11 +17,14 @@ namespace Test.Api.Endpoints.Auth
     {
         private readonly IAuthService _authService;
         private readonly IConfiguration _configuration;
+        private readonly IValidator<LoginRequest> _validator;
 
-        public Login(IAuthService authService, IConfiguration configuration)
+        public Login(IAuthService authService, IConfiguration configuration,
+            IValidator<LoginRequest> validator)
         {
             _authService = authService;
             _configuration = configuration;
+            _validator = validator;
 
         }
 
@@ -32,6 +37,11 @@ namespace Test.Api.Endpoints.Auth
         ]
         public override async Task<ActionResult<LoginResponse>> HandleAsync([FromBody] LoginRequest request, CancellationToken cancellationToken = default)
         {
+            var validationResult = await _validator.ValidateAsync(request);
+
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
             var result = await _authService.Login(request.Email, request.Password);
 
             if (result.Status == ResultStatus.NotFound)
@@ -70,7 +80,7 @@ namespace Test.Api.Endpoints.Auth
             var response = new LoginResponse
             {
                 Name = user.Name,
-                SlugTenant = user.Tenant.Slug,
+                SlugTenant = user.Tenant?.Slug,
                 Token = new JwtSecurityTokenHandler().WriteToken(securityToken)
             };
 

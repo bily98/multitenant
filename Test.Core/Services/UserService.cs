@@ -64,7 +64,7 @@ namespace Test.Core.Services
         }
 
 
-        public async Task<Result<User>> AddAsync(User user, string slugTenant)
+        public async Task<Result<User>> AddAsync(int userId, User user, string slugTenant)
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Test.Core.Services
                     return Result<User>.NotFound("Tenant not found");
 
                 user.TenantId = tenant.Id;
-                user.CreatedBy = 1;
+                user.CreatedBy = userId;
                 user.CreatedAt = DateTime.UtcNow;
 
                 user = await _userRepository.AddAsync(user);
@@ -88,7 +88,7 @@ namespace Test.Core.Services
             }
         }
 
-        public async Task<Result<User>> UpdateAsync(User user, string slugTenant)
+        public async Task<Result<User>> UpdateAsync(int userId, User user, string slugTenant)
         {
             try
             {
@@ -98,8 +98,8 @@ namespace Test.Core.Services
                 if (tenant == null)
                     return Result<User>.NotFound("Tenant not found");
 
-                tenant.UpdatedBy = 1;
-                tenant.UpdatedAt = DateTime.UtcNow;
+                user.UpdatedBy = userId;
+                user.UpdatedAt = DateTime.UtcNow;
 
                 await _userRepository.UpdateAsync(user);
 

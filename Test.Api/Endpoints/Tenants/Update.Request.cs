@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Test.Api.Endpoints.Tenants
 {
@@ -11,6 +12,13 @@ namespace Test.Api.Endpoints.Tenants
     public class UpdateTenantRequestBody
     {
         public string Name { get; set; }
-        public string Slug { get; set; }
+    }
+
+    public class UpdateTenantRequestBodyValidation : AbstractValidator<UpdateTenantRequestBody>
+    {
+        public UpdateTenantRequestBodyValidation()
+        {
+            RuleFor(x => x.Name).NotEmpty().WithMessage("Name should not be empty");
+        }
     }
 }

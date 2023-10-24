@@ -2,6 +2,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Test.Infrastructure.Data;
+using Test.Infrastructure.Interface;
+using Test.Infrastructure.Providers;
 using Test.Infrastructure.Repositories;
 using Test.SharedKernel.Interfaces;
 
@@ -26,14 +28,9 @@ namespace Test.Infrastructure
                 options.UseSnakeCaseNamingConvention();
             });
 
-            services.AddDbContext<AppDbContext>(options =>
-            {
-                options.UseSqlServer(configuration.GetConnectionString("AppConnection"), connectionOptions =>
-                {
-                    connectionOptions.MigrationsAssembly("Test.Infrastructure.Migrations");
-                });
-                options.UseSnakeCaseNamingConvention();
-            });
+            services.AddDbContext<AppDbContext>();
+
+            services.AddTransient<ITenantProvider, TenantProvider>();
 
             services.AddScoped(typeof(IAppAsyncRepository<>), typeof(AppAsyncRepository<>));
             services.AddScoped(typeof(ISecurityAsyncRepository<>), typeof(SecurityAsyncRepository<>));

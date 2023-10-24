@@ -14,11 +14,14 @@ builder.Services.AddTestInfrastructure(builder.Configuration);
 
 builder.Services.AddAuthorization(builder.Configuration);
 builder.Services.AddControllers(options => options.AddDefaultResultConvention());
+builder.Services.AddValidationConfiguration();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwagger();
 
 var app = builder.Build();
+
+app.Services.MigrateSecurityDbContext();
 
 // Configure the HTTP request pipeline.
 

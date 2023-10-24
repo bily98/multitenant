@@ -1,8 +1,10 @@
 ﻿using Ardalis.ApiEndpoints;
 using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
+using System.Security.Claims;
 using Test.Core.Interfaces;
 
 namespace Test.Api.Endpoints.Tenants
@@ -10,11 +12,14 @@ namespace Test.Api.Endpoints.Tenants
     public class Update : EndpointBaseAsync.WithRequest<UpdateTenantRequest>.WithActionResult<UpdateTenantResponse>
     {
         private readonly ITenantService _tenantService;
+        private readonly IValidator<UpdateTenantRequestBody> _validator;
         private readonly IMapper _mapper;
 
-        public Update(ITenantService tenantService, IMapper mapper)
+        public Update(ITenantService tenantService, IValidator<UpdateTenantRequestBody> validator,
+            IMapper mapper)
         {
             _tenantService = tenantService;
+            _validator = validator;
             _mapper = mapper;
         }
 
@@ -28,6 +33,12 @@ namespace Test.Api.Endpoints.Tenants
         [Authorize]
         public override async Task<ActionResult<UpdateTenantResponse>> HandleAsync([FromRoute] UpdateTenantRequest request, CancellationToken cancellationToken = default)
         {
+            var validationResult = await _validator.ValidateAsync(request.Body);
+
+            if (!validationResult.IsValid)
+                return BadRequest(validationResult.Errors);
+
+            var userId = User.Claims.FirstOrDefault(x => x.Type == ClaimTypes.NameIdentifier)?.Value;
             var tenantResult = await _tenantService.GetByIdAsync(request.Id);
 
             if (!tenantResult.IsSuccess)
@@ -38,7 +49,7 @@ namespace Test.Api.Endpoints.Tenants
 
             var tenant = _mapper.Map(request.Body, tenantResult.Value);
 
-            var result = await _tenantService.UpdateAsync(tenant);
+            var result = await _tenantService.UpdateAsync(Convert.ToInt32(userId), tenant);
 
             if (!result.IsSuccess)
                 return Problem(string.Join(",", result.Errors), null, StatusCodes.Status500InternalServerError);
